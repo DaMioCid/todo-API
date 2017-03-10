@@ -5,8 +5,8 @@ const express    = require('express'),
 const app = express(),
       port = process.env.PORT || 6565;
 
-const todos = [];
-let todoId = 1;
+let todos = [],
+     todoId = 1;
 
 app.use(bodyParser.json());
 
@@ -41,11 +41,25 @@ app.post('/todos', (req, res) => {
 
     body.desc = body.desc.trim();
     body.id = todoId++;
-    
+
     todos.push(body);
 
     res.json(body);
     
+});
+
+
+//DELETE
+app.delete('/todos/:id', (req, res) => {
+    let todoId = parseInt(req.params.id, 10),
+        matchedTodo = _.findWhere(todos, {id: todoId});
+
+        if(!matchedTodo){
+            res.status(404).json({"error": "no todo found with that id"});
+        } else {
+            todos = _.without(todos, matchedTodo);
+            res.json(matchedTodo);    
+        }
 });
 
 app.listen(port, () => {
