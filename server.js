@@ -1,22 +1,13 @@
-const express = require('express');
+const express = require('express'),
+      bodyParser = require('body-parser');
 
 const app = express(),
       port = process.env.PORT || 6565;
 
-const todos = [{
-    id: 1,
-    desc: 'Go to the gym',
-    isDone: false
-}, {
-    id: 2,
-    desc: 'grocery shopping',
-    isDone: false
-}, {
-    id: 3,
-    desc: 'make dinner',
-    isDone: true
-}];
+const todos = [];
+let todoId = 1;
 
+app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
     res.send('Todo API Root');
@@ -28,7 +19,7 @@ app.get('/todos', (req, res) => {
 });
 
 //GET single
-app.get("/todos/:id", (req, res) => {
+app.get('/todos/:id', (req, res) => {
     let todoId = parseInt(req.params.id, 10),
         matchedTodo;
 
@@ -43,6 +34,17 @@ app.get("/todos/:id", (req, res) => {
     } else {
         res.status(404).send;
     }
+});
+
+//POST - - CREATE 
+app.post('/todos', (req, res) => {
+    let body = req.body;
+
+    body.id = todoId++;
+    todos.push(body);
+
+    res.json(body);
+    
 });
 
 app.listen(port, () => {
