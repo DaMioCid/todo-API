@@ -25,6 +25,12 @@ app.get('/todos', (req, res) => {
         filteredTodos = _.where(filteredTodos, { isDone: false} )
     }
 
+    if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+        filteredTodos = _.filter(filteredTodos, (todo) => {
+            return   todo.desc.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+        });
+    }
+
     res.json(filteredTodos);
 });
 
