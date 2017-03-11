@@ -16,7 +16,16 @@ app.get('/', (req, res) => {
 
 //GET
 app.get('/todos', (req, res) => {
-    res.json(todos);
+    let queryParams = req.query,
+        filteredTodos = todos;
+    
+    if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'true'){
+        filteredTodos = _.where(filteredTodos, { isDone: true} )
+    } else if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'false'){
+        filteredTodos = _.where(filteredTodos, { isDone: false} )
+    }
+
+    res.json(filteredTodos);
 });
 
 //GET single
