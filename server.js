@@ -1,6 +1,7 @@
 const express    = require('express'),
       bodyParser = require('body-parser'),
-      _          = require('underscore');
+      _          = require('underscore'),
+      db         = require('./db.js');
 
 const app = express(),
       port = process.env.PORT || 6565;
@@ -18,11 +19,11 @@ app.get('/', (req, res) => {
 app.get('/todos', (req, res) => {
     let queryParams = req.query,
         filteredTodos = todos;
-    
+
     if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'true'){
-        filteredTodos = _.where(filteredTodos, { isDone: true} )
+        filteredTodos = _.where(filteredTodos, { isDone: true} );
     } else if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'false'){
-        filteredTodos = _.where(filteredTodos, { isDone: false} )
+        filteredTodos = _.where(filteredTodos, { isDone: false} );
     }
 
     if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
@@ -46,21 +47,27 @@ app.get('/todos/:id', (req, res) => {
     }
 });
 
-//POST - - CREATE 
+//POST - - CREATE
 app.post('/todos', (req, res) => {
     let body =  _.pick(req.body, 'desc', 'isDone');
 
-    if(!_.isBoolean(body.isDone) || !_.isString(body.desc) || body.desc.trim().length === 0){
-        return res.status(400).send();
-    }
+    db.todo.create(body).then((todo) => {
+      res.json(todo.toJSON());
+    }, (err) => {
+      res.status(400).json(err);
+    });
 
-    body.desc = body.desc.trim();
-    body.id = todoId++;
+    // if(!_.isBoolean(body.isDone) || !_.isString(body.desc) || body.desc.trim().length === 0){
+    //     return res.status(400).send();
+    // }
+    //
+    // body.desc = body.desc.trim();
+    // body.id = todoId++;
+    //
+    // todos.push(body);
+    //
+    // res.json(body);
 
-    todos.push(body);
-
-    res.json(body);
-    
 });
 
 
@@ -73,7 +80,7 @@ app.delete('/todos/:id', (req, res) => {
             res.status(404).json({"error": "no todo found with that id"});
         } else {
             todos = _.without(todos, matchedTodo);
-            res.json(matchedTodo);    
+            res.json(matchedTodo);
         }
 });
 
@@ -100,13 +107,15 @@ app.put('/todos/:id', (req, res) => {
             validAttributes.desc = body.desc;
         } else if ( body.hasOwnProperty('desc')){
             return res.status(400).send();
-        } 
+        }
 
         //Objects in js are passed by reference!
         _.extend(matchedTodo, validAttributes);
         res.json(matchedTodo);
 });
 
-app.listen(port, () => {
-    console.log('SERVER ALIVEEEE!!!!!!!!! in port: ' + port);
+db.sequelize.sync().then(() => {
+  app.listen(port, () => {
+      console.log('SERVER ALIVEEEE!!!!!!!!! in port: ' + port);
+  });
 });
