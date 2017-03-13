@@ -17,22 +17,26 @@ app.get('/', (req, res) => {
 
 //GET
 app.get('/todos', (req, res) => {
-    let queryParams = req.query,
-        filteredTodos = todos;
+  let query = req.query;
+  let where = {};
 
-    if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'true'){
-        filteredTodos = _.where(filteredTodos, { isDone: true} );
-    } else if(queryParams.hasOwnProperty('isDone') && queryParams.isDone === 'false'){
-        filteredTodos = _.where(filteredTodos, { isDone: false} );
+    if (query.hasOwnProperty('isDone') && query.isDone === 'true') {
+      where.isDone = true;
+    } else if (query.hasOwnProperty('isDone') && query.isDone === 'false'){
+      where.isDone = false;
     }
 
-    if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-        filteredTodos = _.filter(filteredTodos, (todo) => {
-            return   todo.desc.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-        });
+    if (query.hasOwnProperty('q') && query.q.length > 0) {
+      where.desc = {
+        $like: '%' + query.q + '%'
+      };
     }
 
-    res.json(filteredTodos);
+    db.todo.findAll({where:where}).then((todos) => {
+      res.json(todos);
+    }, (err) => {
+      res.status(500).send();
+    });
 });
 
 //GET single
