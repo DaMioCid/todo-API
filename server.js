@@ -37,14 +37,17 @@ app.get('/todos', (req, res) => {
 
 //GET single
 app.get('/todos/:id', (req, res) => {
-    let todoId = parseInt(req.params.id, 10),
-        matchedTodo = _.findWhere(todos, {id: todoId});
+    let todoId = parseInt(req.params.id, 10);
 
-    if(matchedTodo){
-        res.json(matchedTodo);
-    } else {
-        res.status(404).send();
-    }
+    db.todo.findById(todoId).then((todo) => {
+      if(!!todo) {
+        res.json(todo.toJSON());
+      }else {
+        res.status(404).json();
+      }
+    }, (err) => {
+      res.status(500).send();
+    });
 });
 
 //POST - - CREATE
@@ -56,18 +59,6 @@ app.post('/todos', (req, res) => {
     }, (err) => {
       res.status(400).json(err);
     });
-
-    // if(!_.isBoolean(body.isDone) || !_.isString(body.desc) || body.desc.trim().length === 0){
-    //     return res.status(400).send();
-    // }
-    //
-    // body.desc = body.desc.trim();
-    // body.id = todoId++;
-    //
-    // todos.push(body);
-    //
-    // res.json(body);
-
 });
 
 
