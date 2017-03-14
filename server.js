@@ -115,13 +115,13 @@ app.post('/users', (req, res) => {
   let body = _.pick(req.body, 'email', 'password');
 
   db.user.create(body).then((user) => {
-    res.json(user.toJSON());
+    res.json(user.toPublicJSON());
   }, (err) => {
     res.status(400).json(err);
   });
 });
 
-db.sequelize.sync().then(() => {
+db.sequelize.sync({force:true}).then(() => {
   app.listen(port, () => {
       console.log('SERVER ALIVEEEE!!!!!!!!! in port: ' + port);
   });

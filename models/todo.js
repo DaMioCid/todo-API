@@ -12,5 +12,13 @@ module.exports = function(sequelize, DataTypes) {
           allowNull: false,
           defaultValue: false
       }
+  }, {
+    hooks: {
+      beforeValidate: (todo, options) => {
+        if(typeof todo.isDone !== 'boolean' || typeof todo.desc === 'boolean'){
+          throw new Error('Invalid input');
+        }
+      }
+    }
   });
 };
