@@ -1,6 +1,7 @@
 const express    = require('express'),
       bodyParser = require('body-parser'),
       _          = require('underscore'),
+      bcrypt     = require('bcrypt'),
       db         = require('./db.js');
 
 const app = express(),
@@ -118,6 +119,17 @@ app.post('/users', (req, res) => {
     res.json(user.toPublicJSON());
   }, (err) => {
     res.status(400).json(err);
+  });
+});
+
+//POST /users/login
+app.post('/users/login', (req, res) => {
+  let body = _.pick(req.body, 'email', 'password');
+
+  db.user.authenticate(body).then((user)=> {
+    res.json(user.toPublicJSON());
+  }, (err) => {
+    res.status(401).send();  //authentication is possible but failed
   });
 });
 
