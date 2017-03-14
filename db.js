@@ -18,6 +18,7 @@ const Sequelize = require('sequelize');
 const db = {};
 
 db.todo = sequelize.import(__dirname + '/models/todo.js');
+db.user = sequelize.import(__dirname + '/models/user.js');
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

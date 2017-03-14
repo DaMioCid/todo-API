@@ -84,31 +84,41 @@ app.delete('/todos/:id', (req, res) => {
 //UPDATE
 app.put('/todos/:id', (req, res) => {
     let todoId = parseInt(req.params.id, 10),
-        matchedTodo = _.findWhere(todos, {id: todoId}),
         body =  _.pick(req.body, 'desc', 'isDone'),
-        validAttributes = {};
+        attributes = {};
 
-        if(!matchedTodo){
-        return res.status(404).send();
+        if(body.hasOwnProperty('isDone')){
+            attributes.isDone = body.isDone;
         }
 
-        //isDone validation
-        if(body.hasOwnProperty('isDone') && _.isBoolean(body.isDone)){
-            validAttributes.isDone = body.isDone;
-        } else if ( body.hasOwnProperty('isDone')){
-            return res.status(400).send();
+        if(body.hasOwnProperty('desc')){
+            attributes.desc = body.desc;
         }
 
-        //desc validation
-        if(body.hasOwnProperty('desc') && _.isBoolean(body.desc) && body.desc.trim().length > 0){
-            validAttributes.desc = body.desc;
-        } else if ( body.hasOwnProperty('desc')){
-            return res.status(400).send();
-        }
+        db.todo.findById(todoId).then((todo) => {
+          if (todo) {
+            todo.update(attributes).then((todo) => {
+              res.json(todo.toJSON());
+            }, (err) => {
+              res.status(400).json(err);
+            });
+          } else {
+            res.status(404).send();
+          }
+        }, () => {
+          res.status(500).send();
+        });
+});
 
-        //Objects in js are passed by reference!
-        _.extend(matchedTodo, validAttributes);
-        res.json(matchedTodo);
+//USER CREATE
+app.post('/users', (req, res) => {
+  let body = _.pick(req.body, 'email', 'password');
+
+  db.user.create(body).then((user) => {
+    res.json(user.toJSON());
+  }, (err) => {
+    res.status(400).json(err);
+  });
 });
 
 db.sequelize.sync().then(() => {
