@@ -127,7 +127,12 @@ app.post('/users/login', (req, res) => {
   let body = _.pick(req.body, 'email', 'password');
 
   db.user.authenticate(body).then((user)=> {
-    res.json(user.toPublicJSON());
+    const token = user.generateToken('authentication');
+    if (token) {
+      res.header('Auth', token).json(user.toPublicJSON());
+    } else {
+      res.status(401).send();
+    }
   }, (err) => {
     res.status(401).send();  //authentication is possible but failed
   });
