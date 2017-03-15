@@ -132,17 +132,27 @@ app.post('/users', (req, res) => {
 
 //POST /users/login
 app.post('/users/login', (req, res) => {
-  let body = _.pick(req.body, 'email', 'password');
+  let body = _.pick(req.body, 'email', 'password'),
+      userInstance;
 
   db.user.authenticate(body).then((user)=> {
     const token = user.generateToken('authentication');
-    if (token) {
-      res.header('Auth', token).json(user.toPublicJSON());
-    } else {
-      res.status(401).send();
-    }
-  }, (err) => {
+    userInstance = user;
+
+    return db.token.create({token:token});
+  }).then((tokenInstance) => {
+    res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+  }).catch((err) => {
     res.status(401).send();  //authentication is possible but failed
+  });
+});
+
+//DELETE - delete an login instance
+app.delete('/users/login', middleware.requireAuthentication, (req, res) => {
+  req.token.destroy().then(() => {
+    res.status(204).send();
+  }, (err) => {
+    res.status(500).send();
   });
 });
 
