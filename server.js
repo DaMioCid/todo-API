@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 //GET
 app.get('/todos', middleware.requireAuthentication, (req, res) => {
   let query = req.query;
-  let where = {};
+  let where = {userId: req.user.get('id')};
 
     if (query.hasOwnProperty('isDone') && query.isDone === 'true') {
       where.isDone = true;
@@ -43,9 +43,10 @@ app.get('/todos', middleware.requireAuthentication, (req, res) => {
 
 //GET single
 app.get('/todos/:id', middleware.requireAuthentication, (req, res) => {
-    let todoId = parseInt(req.params.id, 10);
+    let todoId = parseInt(req.params.id, 10),
+        where = {id: todoId, userId: req.user.get('id')};
 
-    db.todo.findById(todoId).then((todo) => {
+    db.todo.findOne({where:where}).then((todo) => {
       if(!!todo) {
         res.json(todo.toJSON());
       }else {
@@ -74,9 +75,10 @@ app.post('/todos', middleware.requireAuthentication, (req, res) => {
 
 //DELETE
 app.delete('/todos/:id', middleware.requireAuthentication, (req, res) => {
-    let todoId = parseInt(req.params.id, 10);
+    let todoId = parseInt(req.params.id, 10),
+        where = {id:todoId, userId: req.user.get('id')};
 
-    db.todo.destroy({where:{id:todoId}}).then((rowsDeleted) => {
+    db.todo.destroy({where:where}).then((rowsDeleted) => {
       if (rowsDeleted === 0) {
         res.status(404).json({error: 'No todo with id'});
       } else {
@@ -91,6 +93,7 @@ app.delete('/todos/:id', middleware.requireAuthentication, (req, res) => {
 app.put('/todos/:id', middleware.requireAuthentication, (req, res) => {
     let todoId = parseInt(req.params.id, 10),
         body =  _.pick(req.body, 'desc', 'isDone'),
+        where = {id: todoId, userId: req.user.get('id')};
         attributes = {};
 
         if(body.hasOwnProperty('isDone')){
@@ -101,7 +104,7 @@ app.put('/todos/:id', middleware.requireAuthentication, (req, res) => {
             attributes.desc = body.desc;
         }
 
-        db.todo.findById(todoId).then((todo) => {
+        db.todo.findOne({where:where}).then((todo) => {
           if (todo) {
             todo.update(attributes).then((todo) => {
               res.json(todo.toJSON());
@@ -143,7 +146,7 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-db.sequelize.sync({force:true}).then(() => {
+db.sequelize.sync().then(() => {
   app.listen(port, () => {
       console.log('SERVER ALIVEEEE!!!!!!!!! in port: ' + port);
   });
