@@ -146,7 +146,7 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-db.sequelize.sync().then(() => {
+db.sequelize.sync({force:true}).then(() => {
   app.listen(port, () => {
       console.log('SERVER ALIVEEEE!!!!!!!!! in port: ' + port);
   });
